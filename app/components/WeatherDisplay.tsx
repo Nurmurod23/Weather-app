@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { FaThermometerHalf, FaWind, FaTint, FaCompress } from 'react-icons/fa'
+import Image from 'next/image'
 import { WeatherData } from '../types/weather'
 
 export default function WeatherDisplay({ weather }: { weather: WeatherData }) {
@@ -26,10 +27,12 @@ export default function WeatherDisplay({ weather }: { weather: WeatherData }) {
             animate={{ scale: 1, rotate: 0 }}
             transition={{ type: 'spring', stiffness: 260, damping: 20 }}
           >
-            <img
-              src={`http://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png`}
+            <Image
+              src={`http://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png`} // Use Image component
               alt={weather.weather[0].description}
-              className="w-24 h-24 sm:w-32 sm:h-32 object-cover z-10 relative"
+              width={128} // Add width for optimization
+              height={128} // Add height for optimization
+              className="object-cover z-10 relative"
             />
             <div className="absolute inset-0 bg-blue-300/20 dark:bg-blue-400/20 rounded-full blur-xl" />
           </motion.div>

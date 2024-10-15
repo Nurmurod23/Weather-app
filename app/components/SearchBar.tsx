@@ -36,21 +36,21 @@ export default function SearchBar() {
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (isValid && !isSubmitting) {
-      setIsSubmitting(true)
+      setIsSubmitting(true);
       try {
-        await new Promise(resolve => setTimeout(resolve, 100))
-        router.push(`/weather/${encodeURIComponent(input.trim())}`)
-        setInput('')
-        setIsTouched(false)
-      } catch (error) {
-        setErrorMessage('Failed to search for the city. Please try again.')
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        router.push(`/weather/${encodeURIComponent(input.trim())}`);
+        setInput('');
+        setIsTouched(false);
+      } catch {
+        setErrorMessage('Failed to search for the city. Please try again.');
       } finally {
-        setIsSubmitting(false)
+        setIsSubmitting(false);
       }
     }
-  }
+  };  
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInput(e.target.value)

@@ -12,8 +12,10 @@ import {
   Title,
   Tooltip,
   Legend,
+  TooltipItem
 } from 'chart.js'
 import { ForecastData } from '../types/weather'
+import Image from 'next/image'
 
 ChartJS.register(
   CategoryScale,
@@ -30,16 +32,14 @@ type ForecastType = 'hourly' | 'daily'
 export default function ForecastDisplay({ hourly, daily }: { hourly?: ForecastData; daily?: ForecastData }) {
   const [forecastType, setForecastType] = useState<ForecastType>('hourly')
 
-  const getForecastData = () => {
+  const forecastData = useMemo(() => {
     if (forecastType === 'hourly' && hourly?.list) {
-      return hourly.list
+      return hourly.list;
     } else if (forecastType === 'daily' && daily?.list) {
-      return daily.list
+      return daily.list;
     }
-    return []
-  }
-
-  const forecastData = useMemo(() => getForecastData(), [forecastType, hourly, daily])
+    return [];
+  }, [forecastType, hourly, daily]);
 
   const chartData = useMemo(() => ({
     labels: forecastData.map(item => 
@@ -64,7 +64,7 @@ export default function ForecastDisplay({ hourly, daily }: { hourly?: ForecastDa
         beginAtZero: false,
         ticks: {
           callback: function (tickValue: string | number) {
-            return `${tickValue}°C`; // Ensure the tickValue is returned as a string
+            return `${tickValue}°C`; 
           },
           color: 'rgba(147, 197, 253, 1)',
         },
@@ -92,11 +92,11 @@ export default function ForecastDisplay({ hourly, daily }: { hourly?: ForecastDa
         borderColor: 'rgba(59, 130, 246, 0.2)',
         borderWidth: 1,
         callbacks: {
-          label: (context: any) => `${context.parsed.y}°C`,
+          label: (context: TooltipItem<'line'>) => `${context.parsed.y}°C`,
         },
       },
     },
-  }), []);  
+  }), []);
 
   if (!hourly?.list && !daily?.list) {
     return (
@@ -136,50 +136,50 @@ export default function ForecastDisplay({ hourly, daily }: { hourly?: ForecastDa
         </div>
 
         {forecastData.length > 0 && (
-          <div className="mb-8 md:mb-10 bg-blue-800/50 p-4 rounded-xl">
-            <Line data={chartData} options={chartOptions} className="w-full h-[300px]" />
+          <div className="relative max-w-4xl mx-auto">
+            <Line data={chartData} options={chartOptions} />
           </div>
         )}
 
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={forecastType}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6"
-          >
-            {forecastData.map((item, index) => (
-              <motion.div
-                key={item.dt}
-                className="bg-blue-800/50 backdrop-blur-md p-4 md:p-6 rounded-xl flex flex-col items-center shadow-lg border border-blue-700/50 hover:border-blue-500/50 transition-all duration-300"
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.1 * index }}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <p className="text-base md:text-lg font-semibold mb-2 text-blue-200">
-                  {forecastType === 'hourly'
-                    ? new Date(item.dt * 1000).toLocaleTimeString('en-US', { hour: 'numeric', hour12: true })
-                    : new Date(item.dt * 1000).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                </p>
-                <div className="relative mb-2">
-                  <img
+        <AnimatePresence>
+          {forecastData.length > 0 && (
+            <motion.div
+              key={forecastType}
+              className="mt-6 md:mt-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              {forecastData.slice(0, 12).map((item, index) => (
+                <motion.div
+                  key={index}
+                  className="bg-blue-700 bg-opacity-60 rounded-lg p-4 flex flex-col items-center shadow-lg"
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: index * 0.05 }}
+                >
+                  <p className="text-blue-100 text-sm md:text-base">
+                    {forecastType === 'hourly'
+                      ? new Date(item.dt * 1000).toLocaleTimeString('en-US', { hour: 'numeric', hour12: true })
+                      : new Date(item.dt * 1000).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                  </p>
+                  <Image
                     src={`http://openweathermap.org/img/wn/${item.weather[0].icon}@2x.png`}
                     alt={item.weather[0].description}
-                    className="w-16 h-16 md:w-20 md:h-20 object-cover"
+                    width={64}
+                    height={64}
+                    className="object-cover"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-400/20 to-blue-600/20 rounded-full blur-md"></div>
-                </div>
-                <p className="text-2xl md:text-3xl font-bold mb-1 text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-blue-100">
-                  {Math.round(item.main.temp)}°C
-                </p>
-                <p className="text-sm md:text-base text-blue-300 capitalize">{item.weather[0].description}</p>
-              </motion.div>
-            ))}
-          </motion.div>
+                  <p className="text-blue-100 text-lg font-medium">
+                    {Math.round(item.main.temp)}°C
+                  </p>
+                  <p className="text-blue-300 text-xs md:text-sm text-center">
+                    {item.weather[0].description}
+                  </p>
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
         </AnimatePresence>
       </div>
     </div>
